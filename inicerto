@@ -52,7 +52,8 @@ if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 fi
 
 if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
-	printf "Creating a new key and signed certificate for %s\n" "$FQDN"
+	printf 'Creating a new private key and a signed certificate for %s\n' \
+		"$FQDN"
 	read -rsp "Desired ${FQDN} key password: " DNKEY
 	echo
 	# TODO ask again to confirm
@@ -77,7 +78,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
 		-extfile <( echo "$SAN" ) -days 366 -out "${FQDN}.crt"
 	printf \
-	"Creating %s PKCS12 container with key and certificate chain for %s\n" \
+	'Creating %s PKCS12 container with key and certificate chain for %s\n' \
 	"$FQDN.p12" "$FQDN"
 	# FIXME openssl favor compatibility over security for PKCS12 by default
 	# because PKCS12 is mainly use for credential transmission

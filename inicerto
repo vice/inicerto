@@ -84,8 +84,8 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	# because PKCS12 is mainly use for credential transmission
 	# so default values are not very secure
 	# low iteration counts and 3DES usage for example
-	openssl pkcs12 -export -in "${FQDN}.crt" \
+	openssl pkcs12 -export -in "${FQDN}.crt" -name "${FQDN} certificate" \
 		-inkey "${FQDN}.key" -passin "pass:$DNKEY" \
-		-certfile "${CA}.crt" -name "${FQDN} certificate" \
+		-certfile "${CA}.crt" -caname "${CA} certificate" \
 		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
 fi

@@ -66,8 +66,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	# ----------------
 	# Maybe extendedKeyUsage=serverAuth needs to be added
 	#
-	# Due to a OpenSSL bug
-	# request extensions are not maintained in final certificate
+	# OpenSSL has no option to copy request extensions into certificate
 	# so -addext request option could be removed
 	# openssl x509 command could only get extensions from a file
 	# So to avoid writing a file we use <() bashism

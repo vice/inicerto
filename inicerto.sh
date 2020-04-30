@@ -1,0 +1,91 @@
+#!/bin/bash
+# I N I C E R T O
+# backronyms:
+# sIgNIng CERTificates Only
+# INternal CERTificates Only
+# Inicerto Not Incierto CERTificates Only
+# Inicerto Not Incierto Certificate Easy Release Tool Only
+# incertidumbre disléxica - dyslexic uncertainty
+#
+# Author: Vicente Jimenez Aguilar <googuy@gmail.com>
+#
+# Try to simplify multiple signed certificate generation by a simple CA
+# that provides signed certificates and they corresponding private keys.
+# WARNING This is not the normal operation of a certificate authority.
+# It is best suited for internal use only or when you control all endpoints.
+# Use at your own risk.
+# TODO: See if openssl ca could be a better fit for our use case
+
+if [ -z "$1" ]; then
+	printf "Usage:\n  $0 <CA name to use> [<dns.fqdn>]\n"
+	exit 1
+fi
+
+CA="$1"
+FQDN="$2"
+
+# WARNING This password could be viewed temporally in command line process view
+read -rsp "${CA} key password: " CAKEY
+echo
+# TODO ask again to confirm
+#      or if CA key exists check if it is correct
+
+if [ -r "${CA}.key" ]; then
+	if [ ! -r "${CA}.crt" ]; then
+		# Create a self signed CA certificate from an existing key
+		openssl req -new -x509 -key "${CA}.key" -passin "pass:$CAKEY" \
+			-days 1461 -out "${CA}.crt"
+	fi
+else
+	# Create a self signed CA certificate and key
+	openssl req -new -x509 -newkey rsa:4096 \
+		-keyout "${CA}.key" -passout "pass:$CAKEY" \
+		-days 1461 -out "${CA}.crt"
+fi
+
+if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
+	# FIXME find a way to create a PKCS12 truststore without using keytool
+	# openssl only handles most common case and expects a private key
+	# FIXME Avoid executing keytool if not present
+	keytool -importcert -file "${CA}.crt" -alias "${CA} certificate" \
+		-keystore "${CA}.p12"
+fi
+
+if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
+	printf "Creating a new key and signed certificate for %s\n" "$FQDN"
+	read -rsp "Desired ${FQDN} key password: " DNKEY
+	echo
+	# TODO ask again to confirm
+	# Get subject from CA certificate but replaces CN value with %s
+	SUBJ="$(
+		openssl x509 -in "${CA}.crt" -noout -subject |
+		sed 's/\(subject=\|, \)\([A-Z]*\) = /\/\2=/g; s/CN=[^/]*/CN=%s/'
+		)"
+	SAN="subjectAltName = DNS:${FQDN}"
+	# About Extensions
+	# ----------------
+	# Maybe extendedKeyUsage=serverAuth needs to be added
+	#
+	# Due to a OpenSSL bug
+	# request extensions are not maintained in final certificate
+	# so -addext request option could be removed
+	# openssl x509 command could only get extensions from a file
+	# So to avoid writing a file we use <() bashism
+	# This could be replaced using a temporary file
+	openssl req -new -subj "$( printf "$SUBJ" "$FQDN" )" -addext "$SAN" \
+		-newkey rsa:4096 -keyout "${FQDN}.key" -passout "pass:$DNKEY" |
+	openssl x509 -req -CA "${CA}.crt" \
+		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
+		-extfile <( echo "$SAN" ) -days 366 -out "${FQDN}.crt"
+	printf \
+	"Creating %s PKCS12 container with key and certificate chain for %s\n" \
+	"$FQDN.p12" "$FQDN"
+	# FIXME openssl favor compatibility over security for PKCS12 by default
+	# because PKCS12 is mainly use for credential transmission
+	# so default values are not very secure
+	# low iteration counts and 3DES usage for example
+	openssl pkcs12 -export -in "${FQDN}.crt" \
+		-inkey "${FQDN}.key" -passin "pass:$DNKEY" \
+		-certfile "${CA}.crt" -name "${FQDN} certificate" \
+		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
+fi

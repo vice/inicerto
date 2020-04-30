@@ -1,20 +1,22 @@
 #!/bin/bash
-# I N I C E R T O
-# backronyms:
-# sIgNIng CERTificates Only
-# INternal CERTificates Only
-# Inicerto Not Incierto CERTificates Only
-# Inicerto Not Incierto Certificate Easy Release Tool Only
-# incertidumbre disléxica - dyslexic uncertainty
 #
-# Author: Vicente Jimenez Aguilar <googuy@gmail.com>
+#   I N I C E R T O   incertidumbre disléxica - dyslexic uncertainty
 #
 # Try to simplify multiple signed certificate generation by a simple CA
 # that provides signed certificates and they corresponding private keys.
 # WARNING This is not the normal operation of a certificate authority.
 # It is best suited for internal use only or when you control all endpoints.
 # Use at your own risk.
-# TODO: See if openssl ca could be a better fit for our use case
+# TODO: See if openssl ca could be a better fit for your use case.
+#
+# Author: Vicente Jimenez Aguilar <googuy@gmail.com>
+#
+# backronyms:
+# sIgNIng CERTificates Only
+# INternal CERTificates Only
+# Inicerto Not Incierto CERTificates Only
+# Inicerto Not Incierto Certificate Easy Release Tool Only
+# TODO: you can do better
 
 if [ -z "$1" ]; then
 	printf "Usage:\n  $0 <CA name to use> [<dns.fqdn>]\n"

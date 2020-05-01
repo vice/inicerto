@@ -55,7 +55,14 @@ fi
 
 if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 	# FIXME find a way to create a PKCS12 truststore without using keytool
-	# openssl only handles most common case and expects a private key
+	# openssl pkcs12 -export -nokeys -in "${CA}.crt" -caname "${CA} name" \
+	#         -out truststore.p12
+	# Creates a PKCS12 keystore containing a single CA certificate
+	# with a friendlyName but no 2.16.840.1.113894.746875.1.1 bag attribute
+	# so keytool find no entry
+	# https://github.com/openssl/openssl/issues/6684
+	# Apparently this OID is required for trustedCertEntry in Java
+	# https://www.jhack.it/mediaWiki/index.php/OpenSSL&Co#Trusted_certificates_in_PKCS.2312.2FP12.2FPFX
 	# FIXME Avoid executing keytool if not present
 	keytool -importcert -file "${CA}.crt" -alias "${CA} certificate" \
 		-keystore "${CA}.p12"

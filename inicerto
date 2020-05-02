@@ -105,4 +105,14 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		-inkey "${FQDN}.key" -passin "pass:$DNKEY" \
 		-certfile "${CA}.crt" -caname "${CA} certificate" \
 		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
+	if [ -r "${CA}.srl" ]; then
+		COPY="${FQDN}.$( cat "${CA}.srl" )"
+		printf 'Making file copies with serial number in file name\n'
+		for EXT in key crt p12; do
+			FROM="${FQDN}.${EXT}"
+			TO="${COPY}.${EXT}"
+			cp -a "$FROM" "$TO" && \
+				printf '  %s = %s\n' "$FROM" "$TO"
+		done
+	fi
 fi

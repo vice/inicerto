@@ -107,7 +107,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
 	if [ -r "${CA}.srl" ]; then
 		COPY="${FQDN}.$( cat "${CA}.srl" )"
-		printf 'Making file copies with serial number in file name\n'
+		printf 'Making file copies with serial number in their name\n'
 		for EXT in key crt p12; do
 			FROM="${FQDN}.${EXT}"
 			TO="${COPY}.${EXT}"

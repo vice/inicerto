@@ -126,6 +126,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		-inkey "${FQDN}.key" -passin "pass:$DNKEY" \
 		-certfile "${CA}.crt" -caname "${CA} certificate" \
 		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
+	# TODO Make copies optional with -c modifier for example
 	if [ -r "${CA}.srl" ]; then
 		COPY="${FQDN}.$( cat "${CA}.srl" )"
 		printf 'Making file copies with serial number in their name\n'

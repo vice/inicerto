@@ -12,6 +12,10 @@
 #
 # Author: Vicente Jimenez Aguilar <googuy@gmail.com>
 #
+# Declared bashisms:
+#   read -s option switch that could be replaced with function that outputs *
+#   <() execution redirection that could be replaced with a temporary file
+#
 # backronyms:
 # sIgNIng CERTificates Only
 # INternal CERTificates Only
@@ -36,6 +40,7 @@ CA="$1"
 FQDN="$2"
 
 askpass() {
+	# read -s option switch is a bashism
 	read -rsp "$1" "$2"
 	echo
 }

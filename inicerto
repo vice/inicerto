@@ -89,7 +89,7 @@ if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 	# https://www.jhack.it/mediaWiki/index.php/OpenSSL&Co#Trusted_certificates_in_PKCS.2312.2FP12.2FPFX
 	# FIXME Avoid executing keytool if not present
 	keytool -importcert -file "${CA}.crt" -alias "${CA} certificate" \
-		-keystore "${CA}.p12" -storepass "$CAP12"
+		-noprompt -keystore "${CA}.p12" -storepass "$CAP12"
 fi
 
 if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then

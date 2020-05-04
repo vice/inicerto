@@ -35,10 +35,13 @@ fi
 CA="$1"
 FQDN="$2"
 
-read -rsp "${CA} key password: " CAKEY
-echo
+askpass() {
+	read -rsp "$1" "$2"
+	echo
+}
 
 if [ -r "${CA}.key" ]; then
+	askpass "Enter current ${CA} key password: " CAKEY
 	# TODO check if password is correct and ask again until correct
 	if [ ! -r "${CA}.crt" ]; then
 		# Create a self signed CA certificate from an existing key
@@ -46,6 +49,7 @@ if [ -r "${CA}.key" ]; then
 			-days 1461 -out "${CA}.crt"
 	fi
 else
+	askpass "Enter desired ${CA} key password: " CAKEY
 	# TODO ask again for password to confirm
 	# Create a self signed CA certificate and key
 	openssl req -new -x509 -newkey rsa:4096 \
@@ -71,8 +75,7 @@ fi
 if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	printf 'Creating a new private key and a signed certificate for %s\n' \
 		"$FQDN"
-	read -rsp "Desired ${FQDN} key password: " DNKEY
-	echo
+	askpass "Enter desired ${FQDN} key password: " DNKEY
 	# TODO ask again to confirm
 	# Get subject from CA certificate but replaces CN value with %s
 	SUBJ="$(

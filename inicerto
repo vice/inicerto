@@ -7,6 +7,7 @@
 # WARNING This is not the normal operation of a certificate authority.
 # It is best suited for internal use only or when you control all endpoints.
 # Use at your own risk.
+# WARNING passwords could be viewed temporally in command line process view
 # TODO: See if openssl ca could be a better fit for your use case.
 #
 # Author: Vicente Jimenez Aguilar <googuy@gmail.com>
@@ -34,19 +35,18 @@ fi
 CA="$1"
 FQDN="$2"
 
-# WARNING This password could be viewed temporally in command line process view
 read -rsp "${CA} key password: " CAKEY
 echo
-# TODO ask again to confirm
-#      or if CA key exists check if it is correct
 
 if [ -r "${CA}.key" ]; then
+	# TODO check if password is correct and ask again until correct
 	if [ ! -r "${CA}.crt" ]; then
 		# Create a self signed CA certificate from an existing key
 		openssl req -new -x509 -key "${CA}.key" -passin "pass:$CAKEY" \
 			-days 1461 -out "${CA}.crt"
 	fi
 else
+	# TODO ask again for password to confirm
 	# Create a self signed CA certificate and key
 	openssl req -new -x509 -newkey rsa:4096 \
 		-keyout "${CA}.key" -passout "pass:$CAKEY" \
@@ -59,7 +59,7 @@ if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 	#         -out truststore.p12
 	# Creates a PKCS12 keystore containing a single CA certificate
 	# with a friendlyName but no 2.16.840.1.113894.746875.1.1 bag attribute
-	# so keytool find no entry
+	# so keytool does not find any entry
 	# https://github.com/openssl/openssl/issues/6684
 	# Apparently this OID is required for trustedCertEntry in Java
 	# https://www.jhack.it/mediaWiki/index.php/OpenSSL&Co#Trusted_certificates_in_PKCS.2312.2FP12.2FPFX

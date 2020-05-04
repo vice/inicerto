@@ -40,6 +40,17 @@ askpass() {
 	echo
 }
 
+askpass2() {
+	while : ; do
+		askpass "Enter desired $1 password: " PASS
+		askpass "Re-type $1 password: " VERIFY
+		if [ "$PASS" == "$VERIFY" ]; then
+			break
+		fi
+		printf 'Passwords do not match. Try again.\n'
+	done
+}
+
 if [ -r "${CA}.key" ]; then
 	while : ; do
 		askpass "Enter current ${CA} key password: " CAKEY
@@ -55,14 +66,8 @@ if [ -r "${CA}.key" ]; then
 			-days 1461 -out "${CA}.crt"
 	fi
 else
-	while : ; do
-		askpass "Enter desired ${CA} key password: " CAKEY
-		askpass "Re-type ${CA} key password: " CAKEY2
-		if [ "$CAKEY" == "$CAKEY2" ]; then
-			break
-		fi
-		printf 'Passwords do not match. Try again.\n'
-	done
+	askpass2 "$CA key"
+	CAKEY="$PASS"
 	# Create a self signed CA certificate and key
 	openssl req -new -x509 -newkey rsa:4096 \
 		-keyout "${CA}.key" -passout "pass:$CAKEY" \
@@ -70,14 +75,7 @@ else
 fi
 
 if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
-	while : ; do
-		askpass "Enter desired ${CA} PKCS#12 truststore password: " CAP12
-		askpass "Re-type ${CA} PKCS#12 truststore password: " CAP122
-		if [ "$CAP12" == "$CAP122" ]; then
-			break
-		fi
-		printf 'Passwords do not match. Try again.\n'
-	done
+	askpass2 "$CA PKCS#12 truststore"
 	# FIXME find a way to create a PKCS12 truststore without using keytool
 	# openssl pkcs12 -export -nokeys -in "${CA}.crt" -caname "${CA} name" \
 	#         -out truststore.p12
@@ -89,20 +87,13 @@ if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 	# https://www.jhack.it/mediaWiki/index.php/OpenSSL&Co#Trusted_certificates_in_PKCS.2312.2FP12.2FPFX
 	# FIXME Avoid executing keytool if not present
 	keytool -importcert -file "${CA}.crt" -alias "${CA} certificate" \
-		-noprompt -keystore "${CA}.p12" -storepass "$CAP12"
+		-noprompt -keystore "${CA}.p12" -storepass "$PASS"
 fi
 
 if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	printf 'Creating a new private key and a signed certificate for %s\n' \
 		"$FQDN"
-	while : ; do
-		askpass "Enter desired ${FQDN} key password: " DNKEY
-		askpass "Re-type ${FQDN} key password: " DNKEY2
-		if [ "$DNKEY" == "$DNKEY2" ]; then
-			break
-		fi
-		printf 'Passwords do not match. Try again.\n'
-	done
+	askpass2 "$FQDN key"
 	# Get subject from CA certificate but replaces CN value with %s
 	SUBJ="$(
 		openssl x509 -in "${CA}.crt" -noout -subject |
@@ -119,7 +110,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	# So to avoid writing a file we use <() bashism
 	# This could be replaced using a temporary file
 	openssl req -new -subj "$( printf "$SUBJ" "$FQDN" )" -addext "$SAN" \
-		-newkey rsa:4096 -keyout "${FQDN}.key" -passout "pass:$DNKEY" |
+		-newkey rsa:4096 -keyout "${FQDN}.key" -passout "pass:$PASS" |
 	openssl x509 -req -CA "${CA}.crt" \
 		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
 		-extfile <( echo "$SAN" ) -days 366 -out "${FQDN}.crt"
@@ -131,9 +122,9 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	# so default values are not very secure
 	# low iteration counts and 3DES usage for example
 	openssl pkcs12 -export -in "${FQDN}.crt" -name "${FQDN} certificate" \
-		-inkey "${FQDN}.key" -passin "pass:$DNKEY" \
+		-inkey "${FQDN}.key" -passin "pass:$PASS" \
 		-certfile "${CA}.crt" -caname "${CA} certificate" \
-		-out "${FQDN}.p12" -passout "pass:$DNKEY" 
+		-out "${FQDN}.p12" -passout "pass:$PASS"
 	# TODO Make copies optional with -c modifier for example
 	if [ -r "${CA}.srl" ]; then
 		COPY="${FQDN}.$( cat "${CA}.srl" )"

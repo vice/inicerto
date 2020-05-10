@@ -99,6 +99,19 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	printf 'Creating a new private key and a signed certificate for %s\n' \
 		"$FQDN"
 	askpass2 "$FQDN key"
+	# Use @ pseudo array to store option preserving spaces in password
+	# Inspired by https://yakking.branchable.com/posts/whitespace-safety/
+	# Could not find a simpler solution using just a variable without
+	# duplicating code inside if-then construction or using a bash array
+	# that allows the choice of unencrypted or encrypted private keys
+	# using passwords containing spaces in the same openssl command
+	if [ "$PASS" ]; then
+		set -- -passout "pass:$PASS"
+	else
+		set -- -nodes
+		printf 'WARNING: Empty password!\n'
+		printf 'An unencripted key file will be saved for %s.\n' "$FQDN"
+	fi
 	# Get subject from CA certificate but replaces CN value with %s
 	SUBJ="$(
 		openssl x509 -in "${CA}.crt" -noout -subject |
@@ -115,7 +128,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 	# So to avoid writing a file we use <() bashism
 	# This could be replaced using a temporary file
 	openssl req -new -subj "$( printf "$SUBJ" "$FQDN" )" -addext "$SAN" \
-		-newkey rsa:4096 -keyout "${FQDN}.key" -passout "pass:$PASS" |
+		-newkey rsa:4096 -keyout "${FQDN}.key" "$@" |
 	openssl x509 -req -CA "${CA}.crt" \
 		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
 		-extfile <( echo "$SAN" ) -days 366 -out "${FQDN}.crt"

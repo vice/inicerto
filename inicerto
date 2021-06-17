@@ -24,15 +24,14 @@
 # TODO: you can do better
 
 if [ -z "$1" ]; then
-	printf "Usage:
-  $0 'CA name to use' [dns.fqdn]
+	printf "Usage: %s 'CA name to use' [dns.fqdn]
 
-    At least a certificate authority name must be provided.
-    Creates new private key and self signed CA certificate if they are missing.
+  At least a certificate authority name must be provided.
+  Creates new private key and self signed CA certificate if they are missing.
 
-    dns.fqdn parameter is optional. When provided it tries to create
-    a private key and its corresponding certificate signed by the named CA.
-"
+  dns.fqdn parameter is optional. When provided it tries to create
+  a private key and its corresponding certificate signed by the named CA.
+" "$( basename $0 )"
 	exit 1
 fi
 

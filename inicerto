@@ -29,9 +29,9 @@ if [ -z "$1" ]; then
   At least a certificate authority name must be provided.
   Creates new private key and self signed CA certificate if they are missing.
 
-  dns.fqdn parameter is optional. When provided it tries to create
-  a private key and its corresponding certificate signed by the named CA.
-" "$( basename $0 )"
+  When a fully qualified domin name is provided a private key and
+  its corresponding certificate signed by the named CA are created.
+" "$( basename "$0" )"
 	exit 1
 fi
 

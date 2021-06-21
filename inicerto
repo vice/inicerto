@@ -35,6 +35,8 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+# Default validity period of 366 days (1 leap year)
+DAYS=366
 CA="$1"
 FQDN="$2"
 
@@ -130,7 +132,7 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		-newkey rsa:4096 -keyout "${FQDN}.key" "$@" |
 	openssl x509 -req -CA "${CA}.crt" \
 		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
-		-extfile <( echo "$SAN" ) -days 366 -out "${FQDN}.crt"
+		-extfile <( echo "$SAN" ) -days "$DAYS" -out "${FQDN}.crt"
 	printf \
 	'Creating %s PKCS12 container with key and certificate chain for %s\n' \
 	"$FQDN.p12" "$FQDN"

@@ -62,10 +62,10 @@ done
 shift $((OPTIND-1))
 if [ "$1" ]; then
 	CA="$1"
+	shift
 else
 	usage
 fi
-FQDN="$2"
 
 askpass() {
 	# read -s option switch is a bashism
@@ -123,10 +123,17 @@ if [ ! -r "${CA}.p12" -a -r "${CA}.crt" ]; then
 		-noprompt -keystore "${CA}.p12" -storepass "$PASS"
 fi
 
-if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
-	printf 'Creating a new private key and a signed certificate for %s\n' \
-		"$FQDN"
-	askpass2 "$FQDN key"
+if [ -r "${CA}.key" -a -r "${CA}.crt" ]; then
+	FQDNs="$@"
+	printf 'Creating private key and signed certificate for %s\n' \
+		"$FQDNs"
+	askpass2 "$FQDNs key"
+	# Get subject from CA certificate but replaces CN value with %s
+	SUBJ="$(
+		openssl x509 -in "${CA}.crt" -noout -subject |
+		sed 's/\(subject=\|, \)\([A-Z]*\) = /\/\2=/g; s/CN=[^/]*/CN=%s/'
+		)"
+	for FQDN in $@; do
 	# Use @ pseudo array to store option preserving spaces in password
 	# Inspired by https://yakking.branchable.com/posts/whitespace-safety/
 	# Could not find a simpler solution using just a variable without
@@ -140,11 +147,6 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 		printf 'WARNING: Empty password!\n'
 		printf 'An unencripted key file will be saved for %s.\n' "$FQDN"
 	fi
-	# Get subject from CA certificate but replaces CN value with %s
-	SUBJ="$(
-		openssl x509 -in "${CA}.crt" -noout -subject |
-		sed 's/\(subject=\|, \)\([A-Z]*\) = /\/\2=/g; s/CN=[^/]*/CN=%s/'
-		)"
 	SAN="subjectAltName = DNS:${FQDN}"
 	# About Extensions
 	# ----------------
@@ -182,4 +184,5 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" -a "$FQDN" ]; then
 				printf '  %s = %s\n' "$FROM" "$TO"
 		done
 	fi
+	done
 fi

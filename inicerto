@@ -168,6 +168,8 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" ]; then
 		-inkey "${FQDN}.key" -passin "pass:$PASS" \
 		-certfile "${CA}.crt" -caname "${CA} certificate" \
 		-out "${FQDN}.p12" -passout "pass:$PASS"
+		# -legacy could be needed for compatibility with old systems
+		# TODO Maybe add it with a option
 	if cat "${FQDN}.crt" "${FQDN}.key" > "${FQDN}.pem"; then
 		printf 'Certificate and key bundled in %s\n' "${FQDN}.pem"
 	fi

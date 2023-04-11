@@ -13,8 +13,7 @@
 # Author: Vicente Jimenez Aguilar <googuy@gmail.com>
 #
 # Declared bashisms:
-#   read -s option switch that could be replaced with function that outputs *
-#   <() execution redirection that could be replaced with a temporary file
+#   read -s option switch that could be replaced with a function that outputs *
 #
 # backronyms:
 # sIgNIng CERTificates Only
@@ -150,18 +149,14 @@ if [ -r "${CA}.key" -a -r "${CA}.crt" ]; then
 	SAN="subjectAltName = DNS:${FQDN}"
 	# About Extensions
 	# ----------------
-	# Maybe extendedKeyUsage=serverAuth needs to be added
-	#
-	# OpenSSL has no option to copy request extensions into certificate
-	# so -addext request option could be removed
-	# openssl x509 command could only get extensions from a file
-	# So to avoid writing a file we use <() bashism
-	# This could be replaced using a temporary file
+	# Maybe extendedKeyUsage = serverAuth or -addtrust=serverAuth
+	# needs to be added
 	openssl req -new -subj "$( printf "$SUBJ" "$FQDN" )" -addext "$SAN" \
 		-newkey rsa:4096 -keyout "${FQDN}.key" "$@" |
 	openssl x509 -req -CA "${CA}.crt" \
 		-CAkey "${CA}.key" -passin "pass:$CAKEY" -CAcreateserial \
-		-extfile <( echo "$SAN" ) -days "$DAYS" -out "${FQDN}.crt"
+		-copy_extensions copy -days "$DAYS" -out "${FQDN}.crt"
+	# -ext option can be used to further restrict which extensions to copy
 	printf \
 	'Creating %s PKCS12 container with key and certificate chain for %s\n' \
 	"$FQDN.p12" "$FQDN"

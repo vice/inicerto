@@ -75,7 +75,7 @@ askpass() {
 askpass2() {
 	while : ; do
 		askpass "Enter desired $1 password: " PASS
-		askpass "Re-type $1 password: " VERIFY
+		askpass "      Re-type $1 password: " VERIFY
 		if [ "$PASS" == "$VERIFY" ]; then
 			break
 		fi

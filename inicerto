@@ -122,7 +122,7 @@ if [ -r "${CA}.crt" ] && [ ! -r "${CA}.p12" ]; then
 		-noprompt -keystore "${CA}.p12" -storepass "$PASS"
 fi
 
-if [ -r "${CA}.key" ] && [ -r "${CA}.crt" ]; then
+if [ "$@" ] && [ -r "${CA}.key" ] && [ -r "${CA}.crt" ]; then
 	FQDNs="$@"
 	printf 'Creating private key and signed certificate for %s\n' \
 		"$FQDNs"

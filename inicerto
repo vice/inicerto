@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#   I N I C E R T O   incertidumbre disléxica - dyslexic uncertainty
+#   I N I C E R T O   incierta disléxia - uncertain dyslexia
 #
 # Try to simplify multiple signed certificate generation by a simple CA
 # that provides signed certificates and they corresponding private keys.

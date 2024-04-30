@@ -25,13 +25,13 @@
 # TODO: you can do better
 
 usage() {
-	printf "Usage: %s [-d days] 'CA name to use' [dns.fqdn] [other.fqdn] ...
+	printf "Usage: %s [-d days] 'CA name to use' [domain.name] [other.name] ...
 
+  For each provided domain name, creates an encrypted private key
+  and its corresponding certificate signed by the referenced CA.
+  Also creates any missing CA private key or self signed certificate.
   At least a certificate authority name must be provided.
-  Creates new private key and self signed CA certificate if they are missing.
-
-  When fully qualified domain names are provided, a private key and
-  its corresponding certificate signed by the named CA are created.
+  Useful for creating a new root CA self signed certificate.
 
   -d sets an explicit valididty period in days. 366 days (1 year) by default
   for signed certificates and 1461 days (4 years) for autosigned certificates.

@@ -2,18 +2,20 @@
 #
 #   I N I C E R T O   incierta disléxia - uncertain dyslexia
 #
-# Try to simplify multiple signed certificate generation by a simple CA
-# that provides signed certificates and they corresponding private keys.
-# WARNING This is not the normal operation of a certificate authority.
+# Generate multiple domain certificates signed by same CA or intermediary.
+# Outputs signed certificates and corresponding encrypted private keys files.
 # It is best suited for internal use only or when you control all endpoints.
-# Use at your own risk.
-# WARNING passwords could be viewed temporally in command line process view
-# TODO: See if openssl ca could be a better fit for your use case.
 #
-# Author: Vicente Jimenez Aguilar <googuy@gmail.com>
+# WARNINGS
+#   Passwords could be viewed temporally in command line process view
+#   This is not the normal operation of a certificate authority.
+#   'openssl ca' could be a better fit for your use case.
+#   Use at your own risk.
 #
 # Declared bashisms:
 #   read -s option switch that could be replaced with a function that outputs *
+#
+# Author: Vicente Jimenez Aguilar <googuy@gmail.com>
 #
 # backronyms:
 # sIgNIng CERTificates Only
